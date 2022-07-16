@@ -25,9 +25,11 @@ add_library(hello_shared SHARED libHelloSLAM.cpp)
 # + Avoids having to maintain multiple copies of the same library
 # + Most of the time, dynamic library upgrade does not require recompiling other part
 # - Must be located appropriately to make sure the executable can find libraries at runtime
+# - May be marginally slower
 
 # Static:
-# + Monolithic package
+# + Monolithic package / easier to deploy
+# + May be marginally faster
 # - Increase the size of the application
 # - Modifying/upgrading the library code requires rerun compiling/linking of other parts of the application
 
