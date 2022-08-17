@@ -5,5 +5,5 @@ set(CMAKE_CXX_FLAGS "-std=c++17")
 
 add_subdirectory(useEigen)
 add_subdirectory(useGeometry)
-# add_subdirectory(visualizeGeometry)
+add_subdirectory(visualizeGeometry)
 add_subdirectory(examples)
