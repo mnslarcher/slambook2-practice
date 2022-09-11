@@ -46,14 +46,14 @@ int main(int argc, char **argv) {
   // First
   vector<cv::KeyPoint> keypoints1;
   cv::FAST(first_image, keypoints1, 40);
-  vector<DescType> descriptors1;
-  ComputeORB(first_image, keypoints1, descriptors1);
+  vector<DescType> descriptor1;
+  ComputeORB(first_image, keypoints1, descriptor1);
 
   // Same for the second
   vector<cv::KeyPoint> keypoints2;
   cv::FAST(second_image, keypoints2, 40);
-  vector<DescType> descriptors2;
-  ComputeORB(second_image, keypoints2, descriptors2);
+  vector<DescType> descriptor2;
+  ComputeORB(second_image, keypoints2, descriptor2);
 
   chrono::steady_clock::time_point t2 = chrono::steady_clock::now();
   chrono::duration<double> time_used =
@@ -63,6 +63,7 @@ int main(int argc, char **argv) {
   // Find matches
   vector<cv::DMatch> matches;
   t1 = chrono::steady_clock::now();
+  BfMatch(descriptor1, descriptor2, matches);
   time_used = chrono::duration_cast<chrono::duration<double>>(t2 - t1);
   cout << "Match ORB cost = " << time_used.count() << " seconds. " << endl;
   cout << "Matches: " << matches.size() << endl;
@@ -365,7 +366,7 @@ void ComputeORB(const cv::Mat &img, vector<cv::KeyPoint> &keypoints,
     }
 
     // Angle should be arc tan(m01/m10);
-    float m_sqrt = sqrt(m01 * m01 + m10 * m10) + 1e-18;  // Avoid divide by zero
+    float m_sqrt = sqrt(m01 * m01 + m10 * m10) + 1e-18;  // Avoid divide by
     float sin_theta = m01 / m_sqrt;
     float cos_theta = m10 / m_sqrt;
 
@@ -386,7 +387,7 @@ void ComputeORB(const cv::Mat &img, vector<cv::KeyPoint> &keypoints,
                                      sin_theta * q.x + cos_theta * q.y) +
                          kp.pt;
 
-        (img.at<uchar>(pp.y, pp.x) << img.at<uchar>(qq.y, qq.x)) {
+        if (img.at<uchar>(pp.y, pp.x) < img.at<uchar>(qq.y, qq.x)) {
           d |= 1 << k;
         }
       }
@@ -395,4 +396,29 @@ void ComputeORB(const cv::Mat &img, vector<cv::KeyPoint> &keypoints,
     descriptors.push_back(desc);
   }
   cout << "Bad/total: " << bad_points << "/" << keypoints.size() << endl;
+}
+
+// Brute-force matching
+void BfMatch(const vector<DescType> &desc1, const vector<DescType> &desc2,
+             vector<cv::DMatch> &matches) {
+  const int d_max = 40;
+
+  for (size_t i1 = 0; i1 < desc1.size(); ++i1) {
+    if (desc1[i1].empty()) continue;
+    cv::DMatch m{i1, 0, 256};
+    for (size_t i2 = 0; i2 < desc2.size(); ++i2) {
+      if (desc2[i2].empty()) continue;
+      int distance = 0;
+      for (int k = 0; k < 8; k++) {
+        distance += _mm_popcnt_u32(desc1[i1][k] ^ desc2[i2][k]);
+      }
+      if (distance < d_max && distance < m.distance) {
+        m.distance = distance;
+        m.trainIdx = i2;
+      }
+    }
+    if (m.distance < d_max) {
+      matches.push_back(m);
+    }
+  }
 }
