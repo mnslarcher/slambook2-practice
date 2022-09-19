@@ -11,7 +11,7 @@ set(CMAKE_BUILD_TYPE "Release")
 # to calculate the number of 1s in an unsigned int, which is used to achieve the effect of calculating the Hamming 
 # distance."
 add_definitions("-DENABLE_SSE") # Streaming SIMD Extensions (SSE) 
-set(CMAKE_CXX_FLAGS "-std=c++11 -O2 ${SSE_FLAGS} -msse4")
+set(CMAKE_CXX_FLAGS "-std=c++14 -O2 ${SSE_FLAGS} -msse4")
 
 # The list subcommands APPEND, INSERT, FILTER, PREPEND, POP_BACK, POP_FRONT, REMOVE_AT, REMOVE_ITEM, REMOVE_DUPLICATES, 
 # REVERSE and SORT may create new values for the list within the current CMake variable scope
